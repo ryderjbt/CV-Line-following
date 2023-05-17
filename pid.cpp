@@ -49,7 +49,11 @@ int main( int argc, char** argv )
         cv::imshow("rotated", rotatedFrame);
 
         cvtColor(rotatedFrame, hsvFrame, COLOR_BGR2HSV);
-        inRange(hsvFrame, Scalar(0,0,0), Scalar(255,255,50), lineView);
+        inRange(hsvFrame, Scalar(0,0,0), Scalar(255,255,50), lineView); //BLACK
+	//inRange(hsvFrame,Scalar(38, 68, 57), Scalar(73, 255, 255), lineView); GREEN
+	//inRange(hsvFrame,Scalar(0, 100, 100), Scalar(10, 255, 255), lineView); RED
+	//inRange(hsvFrame,Scalar(78, 158, 124), Scalar(138, 255, 255), lineView); BLUE
+
         cv::imshow("lineView", lineView);
 
         Mat cropped1 = lineView(Rect(0, 0, 40, 1));
