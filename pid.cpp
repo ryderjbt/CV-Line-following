@@ -7,8 +7,10 @@
 #include "pi2c.h"
 
 float prevError = 0;
+float servoAngle_straight = 60;
+float k = 0.4;
 
-Pi2c car(0x22); // Configure the I2C interface to the Car as a global variable
+Pi2c Arduino(0x22); // Configure the I2C interface to the Car as a global variable
 
 void setup(void)
 {
@@ -105,11 +107,23 @@ int main( int argc, char** argv )
         // Calculate output of PID controller
         float Kp = 10, Ki = 0, Kd = 0;
         float u = ((Kp * error) + (Ki * integral) + (Kd * derivative));
-
-        // Send output to ESP32 over I2C
-        uint8_t output_byte = (uint8_t)output;
-        arduino.i2cRead(car, output_byte);
-
+	
+	// Calls PID function and stores value returned (adjustment value) as u
+	servoAngle = servoAngle_straight + u;
+	// Adjusts the angle of the servo depending on u to turn towards the line
+	leftMotor_forward  = 115 + (k * u);
+	// Adjusts left motor speed using the product of u and calibrated value k
+	//to accurately alter speed
+  	rightMotor_forward  = 115 - (k * u);
+        // Send output to Arduino Nano over I2C
+	
+        arduino.i2cWriteArduinoInt((byte)((leftMotor_forward & 0x0000FF00) >> 8));
+	arduino.i2cWriteArduinoInt((byte)(leftMotor_forward & 0x0000FF00));
+	arduino.i2cWriteArduinoInt((byte)((rightMotor_forward & 0x0000FF00) >> 8));
+	arduino.i2cWriteArduinoInt((byte)(rightMotor_forward & 0x0000FF00));
+	arduino.i2cWriteArduinoInt((byte)((servoAngle & 0x0000FF00) >> 8));
+	arduino.i2cWriteArduinoInt((byte)(servoAngle & 0x0000FF00));
+	    
         // Update previous error
         prevError = error;
 
@@ -120,8 +134,6 @@ int main( int argc, char** argv )
             break;
     }
 }
-
-
 	closeCV();  // Disable the camera and close any windows
 
 	return 0;
